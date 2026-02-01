@@ -12,7 +12,8 @@ class OfficerController extends Controller
      */
     public function index()
     {
-        //
+        $officers = Officer::all();
+        return view('officers.index', compact('officers'));
     }
 
     /**
@@ -20,7 +21,7 @@ class OfficerController extends Controller
      */
     public function create()
     {
-        //
+        return view('officers.create');
     }
 
     /**
@@ -28,7 +29,16 @@ class OfficerController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:officers,email',
+            'password' => 'required|string',
+            'phone' => 'required|string|max:20',
+        ]);
+
+        Officer::create($request->all());
+        return redirect()->route('officers.index')
+                        ->with('success', 'Officer created successfully.');
     }
 
     /**
@@ -36,7 +46,8 @@ class OfficerController extends Controller
      */
     public function show(Officer $officer)
     {
-        //
+        $officer = Officer::find($officer->id);
+        return view('officers.show', compact('officer'));
     }
 
     /**
@@ -44,7 +55,7 @@ class OfficerController extends Controller
      */
     public function edit(Officer $officer)
     {
-        //
+        return view('officers.edit', compact('officer'));
     }
 
     /**
@@ -52,7 +63,9 @@ class OfficerController extends Controller
      */
     public function update(Request $request, Officer $officer)
     {
-        //
+        $officer->update($request->all());
+        return redirect()->route('officers.index')
+                        ->with('success', 'Officer updated successfully.');
     }
 
     /**
@@ -60,6 +73,8 @@ class OfficerController extends Controller
      */
     public function destroy(Officer $officer)
     {
-        //
+        $officer->delete();
+        return redirect()->route('officers.index')
+                        ->with('success', 'Officer deleted successfully.');
     }
 }

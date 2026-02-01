@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Borrow;
+use App\Models\Student;
+use App\Models\Item;
+use App\Models\Officer;
 use Illuminate\Http\Request;
 
 class BorrowController extends Controller
@@ -12,7 +15,8 @@ class BorrowController extends Controller
      */
     public function index()
     {
-        //
+        $borrows = Borrow::with(['student','item','officer'])->latest()->get();
+        return view('borrows.index', compact('borrows'));
     }
 
     /**
@@ -20,7 +24,11 @@ class BorrowController extends Controller
      */
     public function create()
     {
-        //
+        return view('borrows.create', [
+            'students' => Student::all(),
+            'items' => Item::where('stock', '>', 0)->get(),
+            'officers' => Officer::all(),
+        ]);
     }
 
     /**
@@ -28,7 +36,27 @@ class BorrowController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'item_id' => 'required|exists:items,id',
+            'officer_id' => 'required|exists:officers,id',
+            'borrow_date' => 'required|date',
+            'pick_up_time' => 'required|date_format:H:i',
+            'condition' => 'required|string',
+        ]);
+
+        $item = Item::findOrFail($request->item_id);
+
+        if ($item->stock < 1) {
+            return redirect()->back()->withErrors(['item_id' => 'stock barang tidak tersedia'])->withInput();
+        }
+
+        Borrow::create($request->all());
+
+        $item->decrement('stock');
+
+        return redirect()->route('borrows.index')
+                        ->with('success', 'Peminjaman berhasil disimpan.');
     }
 
     /**
@@ -36,7 +64,8 @@ class BorrowController extends Controller
      */
     public function show(Borrow $borrow)
     {
-        //
+        $borrow->load(['student','item','officer', 'return']);
+        return view('borrows.show', compact('borrow'));
     }
 
     /**
@@ -44,7 +73,12 @@ class BorrowController extends Controller
      */
     public function edit(Borrow $borrow)
     {
-        //
+        return view ('borrows.edit', [
+            'borrow' => $borrow,
+            'students' => Student::all(),
+            'items' => Item::all(),
+            'officers' => Officer::all(),
+        ]);
     }
 
     /**
@@ -52,7 +86,29 @@ class BorrowController extends Controller
      */
     public function update(Request $request, Borrow $borrow)
     {
-        //
+        $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'item_id' => 'required|exists:items,id',
+            'officer_id' => 'required|exists:officers,id',
+            'borrow_date' => 'required|date',
+            'pick_up_time' => 'required|date_format:H:i',
+            'condition' => 'required|string',
+        ]);
+
+        if ($borrow->item_id != $request->item_id) {
+            $borrow->item_id->increment('stock');
+
+            $newItem = Item::findOrFail($request->item_id);
+            if ($newItem->stock < 1) {
+                return back()->with('error','Stok barang baru habis');
+            }
+            $newItem->decrement('stock');
+        }
+
+        $borrow->update($request->all());
+
+        return redirect()->route('borrows.index')
+            ->with('success','Data peminjaman berhasil diupdate');
     }
 
     /**
@@ -60,6 +116,13 @@ class BorrowController extends Controller
      */
     public function destroy(Borrow $borrow)
     {
-        //
+        if (!$borrow->return) {
+            $borrow->item->increment('stock');
+        }
+
+        $borrow->delete();
+
+        return redirect()->route('borrows.index')
+            ->with('success','Data peminjaman berhasil dihapus');
     }
 }

@@ -1,6 +1,12 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BorrowController;
+use App\Http\Controllers\StudentController;
+use App\Http\Controllers\ReturnsController;
+use App\Http\Controllers\ItemController;
+use App\Http\Controllers\OfficerController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -16,3 +22,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::resource('borrows', BorrowController::class);
+Route::resource('students', StudentController::class);
+Route::resource('returns', ReturnsController::class);
+Route::resource('items', ItemController::class);
+Route::resource('officers', OfficerController::class);

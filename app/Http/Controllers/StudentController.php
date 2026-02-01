@@ -12,7 +12,8 @@ class StudentController extends Controller
      */
     public function index()
     {
-        //
+        $students = Student::all();
+        return view('students.index', compact('students'));
     }
 
     /**
@@ -20,7 +21,7 @@ class StudentController extends Controller
      */
     public function create()
     {
-        //
+        return view('students.create');
     }
 
     /**
@@ -28,7 +29,18 @@ class StudentController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:students,email',
+            'password' => 'required|string',
+            'class' => 'required|string|max:50',
+            'phone' => 'required|string|max:20',
+            'nis' => 'required|string|unique:students,nis',
+        ]);
+
+        Student::create($request->all());
+        return redirect()->route('students.index')
+                        ->with('success', 'Student created successfully.');
     }
 
     /**
@@ -36,7 +48,8 @@ class StudentController extends Controller
      */
     public function show(Student $student)
     {
-        //
+        $student = Student::find($student->id);
+        return view('students.show', compact('student'));
     }
 
     /**
@@ -44,7 +57,7 @@ class StudentController extends Controller
      */
     public function edit(Student $student)
     {
-        //
+        return view('students.edit', compact('student'));
     }
 
     /**
@@ -52,7 +65,9 @@ class StudentController extends Controller
      */
     public function update(Request $request, Student $student)
     {
-        //
+        $student->update($request->all());
+        return redirect()->route('students.index')
+                        ->with('success', 'Student updated successfully.');
     }
 
     /**
@@ -60,6 +75,8 @@ class StudentController extends Controller
      */
     public function destroy(Student $student)
     {
-        //
+        $student->delete();
+        return redirect()->route('students.index')
+                        ->with('success', 'Student deleted successfully.');
     }
 }
