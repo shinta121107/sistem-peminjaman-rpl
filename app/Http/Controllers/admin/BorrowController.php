@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\admin;
 
 use App\Models\Borrow;
 use App\Models\Student;
 use App\Models\Item;
 use App\Models\Officer;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
 class BorrowController extends Controller
 {
