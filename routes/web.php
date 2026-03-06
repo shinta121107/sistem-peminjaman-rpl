@@ -7,6 +7,8 @@ use App\Http\Controllers\admin\ReturnsController;
 use App\Http\Controllers\admin\ItemController;
 use App\Http\Controllers\admin\OfficerController;
 use App\Http\Controllers\admin\AuthAdminController;
+use App\Http\Controllers\student\RegisterController;
+use App\Http\Controllers\student\LoginController;
 
 
 /*
@@ -42,5 +44,23 @@ Route::prefix('admin')->group(function () {
         Route::resource('returns', ReturnsController::class);
         Route::resource('items', ItemController::class);
         Route::resource('officers', OfficerController::class);
+    });
+});
+
+
+Route::prefix('student')->name('student.')->group(function () {
+
+    Route::get('login', [LoginController::class, 'show'])->name('login');
+    Route::post('login', [LoginController::class, 'authenticate'])->name('login.process');
+
+    Route::get('register', [RegisterController::class, 'show'])->name('register');
+    Route::post('register', [RegisterController::class, 'store'])->name('register.process');
+
+    Route::post('logout', [LoginController::class, 'logout'])->name('logout');
+
+    Route::middleware('auth:student')->group(function () {
+        Route::get('dashboard', function () {
+            return view('student.dashboard');
+        })->name('dashboard');
     });
 });
